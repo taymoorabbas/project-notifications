@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.session.MediaSession;
 import android.os.Bundle;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.view.View;
 import android.widget.EditText;
 
@@ -20,6 +22,7 @@ import static com.taytech.notificationstutorial.App.CHANNEL_2_ID;
 public class MainActivity extends AppCompatActivity {
 
     private NotificationManagerCompat notificationManager;
+    private MediaSession mediaSession;
 
     private EditText editTextTitle;
     private EditText editTextMessage;
@@ -33,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
 
         this.editTextTitle = findViewById(R.id.edit_text_title);
         this.editTextMessage = findViewById(R.id.edit_text_message);
+
+        //creating a dummy media session
+        this.mediaSession = new MediaSession(this, "Lol");
     }
 
     public void sendOnChannel1(View view) {
@@ -51,19 +57,9 @@ public class MainActivity extends AppCompatActivity {
                 , intentActivity
                 , 0);
 
-        //notification button on click==========================================
+        //creating a image to show when expanded
+        Bitmap artwork = BitmapFactory.decodeResource(getResources(), R.drawable.wwe_logo);
 
-        //creating a broadcast intent
-        Intent intentBroadCast = new Intent(this, NotificationReceiver.class);
-        intentBroadCast.putExtra("toastMessage", message);
-
-        PendingIntent intentAction = PendingIntent.getBroadcast(
-                this
-                , 0
-                , intentBroadCast
-                , PendingIntent.FLAG_UPDATE_CURRENT);
-
-        //end====================================================================
 
         //note setPriority is only required for API < 26
         Notification notification = new NotificationCompat
@@ -71,20 +67,23 @@ public class MainActivity extends AppCompatActivity {
                 .setSmallIcon(R.drawable.ic_channel_1)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setStyle(new NotificationCompat
-                        .InboxStyle()
-                        .addLine("Line 1...........")
-                        .addLine("Line 2........") // set a predefined style
-                        .addLine("Line 3........")
-                        .setBigContentTitle("Big title")
-                        .setSummaryText("Summary"))// set a predefined style
+                .setLargeIcon(artwork)
+                .addAction(R.drawable.ic_rewind, "Rewind", null)
+                .addAction(R.drawable.ic_play, "Play", null)
+                .addAction(R.drawable.ic_pause, "Pause", null)
+                .addAction(R.drawable.ic_forward, "Forward", null)
+                .setStyle(new androidx.media.app.NotificationCompat //setting a media style
+                        .MediaStyle()
+                        .setShowActionsInCompactView(1, 2, 3)
+                        .setMediaSession(MediaSessionCompat.Token
+                                .fromToken(mediaSession.getSessionToken())))
+                .setSubText("Sub text")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setColor(Color.BLUE)
                 .setOnlyAlertOnce(true) //will not disturb when notification content updates
                 .setAutoCancel(true) // dismiss on click
                 .setContentIntent(intentContent) //attaching the intent for on click
-                .addAction(R.mipmap.ic_launcher, "Click me", intentAction) //attaching a button
                 .build();
 
         //same id each time would delete previous notification.
@@ -100,6 +99,10 @@ public class MainActivity extends AppCompatActivity {
         //creating a image
         Bitmap iconLarge = BitmapFactory.decodeResource(getResources(), R.drawable.wwe_logo);
 
+        //creating a image to show when expanded
+        Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.taker);
+
+
         //note setPriority is only required for API < 26
         Notification notification = new NotificationCompat
                 .Builder(this, CHANNEL_2_ID)
@@ -110,10 +113,10 @@ public class MainActivity extends AppCompatActivity {
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setLargeIcon(iconLarge) //setting the large image
                 .setStyle(new NotificationCompat
-                        .BigTextStyle()
-                        .bigText(getString(R.string.dummy_text))
-                        .setBigContentTitle("Expanded title")
-                        .setSummaryText("Summary Text")) //setting a predefined style for notification
+                        .BigPictureStyle()
+                        .setBigContentTitle("Undertaker")
+                        .bigPicture(picture)
+                        .bigLargeIcon(null)) //setting a predefined style for notification
                 .build();
 
         //same id each time would delete previous notification.
